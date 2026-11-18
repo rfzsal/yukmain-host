@@ -103,7 +103,7 @@ public partial class MainWindow : Window
 
     private void PlayerTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!ReferenceEquals(e.Source, PlayerTabs) || _testPending) return;
+        if (_buttonControls is null || !ReferenceEquals(e.Source, PlayerTabs) || _testPending) return;
         _player = PlayerTabs.SelectedIndex + 2;
         if (_player is < 2 or > 4) return;
         LoadInputs(_drafts[_player]);
