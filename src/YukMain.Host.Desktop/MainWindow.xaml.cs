@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Threading;
 using YukMain.Host.Core.Controllers;
 using YukMain.Host.HidMaestro;
 
@@ -200,7 +199,6 @@ public partial class MainWindow : Window
 
             _testPending = true;
             var selected = _player;
-            var previous = _drafts[selected];
             PlayerTabs.IsEnabled = false;
             // Neutralize held buttons first, so a scripted tap is unambiguous.
             _manager.Reset(selected);
