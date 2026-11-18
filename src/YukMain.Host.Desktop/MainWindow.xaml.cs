@@ -16,6 +16,8 @@ public partial class MainWindow : Window
     };
 
     private readonly ToggleButton[] _buttonControls;
+    private readonly RemoteControllerReceiver _remote;
+    private readonly RemoteInputPipeServer _inputPipe;
     private int _player = 2;
     private bool _updatingUi;
     private bool _initialized;
@@ -30,7 +32,32 @@ public partial class MainWindow : Window
             ButtonLB, ButtonRB, ButtonStart, ButtonBack
         ];
         TestPanel.Visibility = Visibility.Visible;
+        _remote = new RemoteControllerReceiver(_manager, (slot, state) =>
+        {
+            _drafts[slot] = state;
+            if (_player == slot) LoadInputs(state);
+            RefreshSlot();
+        }, status => StatusText.Text = status);
+        _inputPipe = new RemoteInputPipeServer(Dispatcher, ReceiveRemoteFrame, () => _remote.ResetAll());
         RefreshSlot();
+    }
+
+    private void ReceiveRemoteFrame(string message)
+    {
+        if (!_initialized)
+        {
+            StatusText.Text = "Initialize the HIDMaestro driver before receiving remote input.";
+            return;
+        }
+        try
+        {
+            _remote.Receive(message);
+        }
+        catch (Exception ex)
+        {
+            // A bad IPC frame must never terminate the elevated UI process.
+            StatusText.Text = $"Remote input rejected: {ex.Message}";
+        }
     }
 
     private void Initialize_Click(object sender, RoutedEventArgs e)
@@ -245,6 +272,8 @@ public partial class MainWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        _inputPipe.Dispose();
+        _remote.Stop();
         _manager.Dispose();
         base.OnClosed(e);
     }

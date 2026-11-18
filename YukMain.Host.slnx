@@ -2,5 +2,6 @@
   <Project Path="src/YukMain.Host.Core/YukMain.Host.Core.csproj" />
   <Project Path="src/YukMain.Host.HidMaestro/YukMain.Host.HidMaestro.csproj" />
   <Project Path="src/YukMain.Host.Desktop/YukMain.Host.Desktop.csproj" />
+  <Project Path="src/YukMain.Host.Bridge/YukMain.Host.Bridge.csproj" />
   <Project Path="tests/YukMain.Host.Tests/YukMain.Host.Tests.csproj" />
 </Solution>

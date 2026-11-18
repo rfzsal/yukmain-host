@@ -38,6 +38,13 @@ jobs:
       - name: Publish self-contained Windows agent
         run: dotnet publish src/YukMain.Host.Desktop/YukMain.Host.Desktop.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableWindowsTargeting=true -o artifacts/win-x64
 
+      - name: Publish self-contained non-elevated bridge
+        run: dotnet publish src/YukMain.Host.Bridge/YukMain.Host.Bridge.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o artifacts/bridge-win-x64
+
+      - name: Add bridge executable to distribution
+        shell: pwsh
+        run: Copy-Item artifacts/bridge-win-x64/* artifacts/win-x64/ -Force
+
       - name: Include HIDMaestro license and third-party notices
         shell: pwsh
         run: |

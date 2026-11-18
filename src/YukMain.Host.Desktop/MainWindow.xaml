@@ -1,7 +1,7 @@
 <Window x:Class="YukMain.Host.Desktop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="YukMain Host Agent · Local Test" Height="790" Width="870"
+        Title="YukMain Host Agent · Local + Remote" Height="790" Width="870"
         MinHeight="650" MinWidth="690"
         Background="{StaticResource WindowBrush}"
         Foreground="{StaticResource TextBrush}"
@@ -16,7 +16,7 @@
 
     <StackPanel Grid.Row="0" Margin="0,0,0,22">
       <TextBlock Text="YukMain · Host Agent" FontWeight="Bold" FontSize="28"/>
-      <TextBlock Text="Local Controller Test · No WebSocket required"
+      <TextBlock Text="Local controller engine + secured local input bridge"
                  Foreground="{StaticResource MutedBrush}" FontSize="13" Margin="0,5,0,0"/>
     </StackPanel>
 
@@ -31,7 +31,7 @@
           <Button x:Name="InitializeButton" Content="Initialize Driver" Click="Initialize_Click"/>
           <Button Content="Open Windows Controller Tester" Click="JoyCpl_Click"/>
         </WrapPanel>
-        <TextBlock Text="First run installs a Windows driver and locally trusted signing certificate. Administrator permission is required."
+        <TextBlock Text="Driver installation requires administrator permission. Remote networking runs separately in the ordinary-user Bridge app; this elevated UI only accepts local pipe input."
                    Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" FontSize="12" Margin="0,10,0,0"/>
       </StackPanel>
     </Border>
