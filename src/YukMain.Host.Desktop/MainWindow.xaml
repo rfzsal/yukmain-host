@@ -1,0 +1,129 @@
+<Window x:Class="YukMain.Host.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="YukMain Host Agent · Local Test" Height="790" Width="870"
+        MinHeight="650" MinWidth="690"
+        Background="{StaticResource WindowBrush}"
+        Foreground="{StaticResource TextBrush}"
+        WindowStartupLocation="CenterScreen">
+  <Grid Margin="24">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <StackPanel Grid.Row="0" Margin="0,0,0,22">
+      <TextBlock Text="YukMain · Host Agent" FontWeight="Bold" FontSize="28"/>
+      <TextBlock Text="Local Controller Test · No WebSocket required"
+                 Foreground="{StaticResource MutedBrush}" FontSize="13" Margin="0,5,0,0"/>
+    </StackPanel>
+
+    <Border Grid.Row="1" Background="{StaticResource CardBrush}" CornerRadius="12" Padding="18" Margin="0,0,0,17">
+      <StackPanel>
+        <TextBlock Text="CONTROLLER ENGINE" FontWeight="Bold" FontSize="12"
+                   Foreground="{StaticResource MutedBrush}" Margin="0,0,0,10"/>
+        <TextBlock Text="HIDMaestro · Virtual Xbox 360 (wired)" FontWeight="SemiBold" FontSize="16"/>
+        <TextBlock x:Name="DriverStatusText" Text="Driver: not initialized"
+                   Foreground="{StaticResource MutedBrush}" Margin="0,8,0,12"/>
+        <WrapPanel>
+          <Button x:Name="InitializeButton" Content="Initialize Driver" Click="Initialize_Click"/>
+          <Button Content="Open Windows Controller Tester" Click="JoyCpl_Click"/>
+        </WrapPanel>
+        <TextBlock Text="First run installs a Windows driver and locally trusted signing certificate. Administrator permission is required."
+                   Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" FontSize="12" Margin="0,10,0,0"/>
+      </StackPanel>
+    </Border>
+
+    <Grid Grid.Row="2">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      <WrapPanel Grid.Row="0" Margin="0,0,0,12" VerticalAlignment="Center">
+        <TextBlock Text="SELECT PLAYER" VerticalAlignment="Center" FontWeight="Bold"
+                   Foreground="{StaticResource MutedBrush}" Margin="0,0,12,0"/>
+        <ComboBox x:Name="PlayerTabs" Width="160" SelectedIndex="0"
+                  SelectionChanged="PlayerTabs_SelectionChanged">
+          <ComboBoxItem Content="Player 2"/>
+          <ComboBoxItem Content="Player 3"/>
+          <ComboBoxItem Content="Player 4"/>
+        </ComboBox>
+      </WrapPanel>
+      <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <Border x:Name="TestPanel" Background="{StaticResource CardBrush}" CornerRadius="12" Padding="18">
+          <StackPanel>
+            <TextBlock x:Name="SlotLabel" Text="Player 2 controller" FontSize="18" FontWeight="Bold"/>
+            <TextBlock x:Name="SlotStatus" Text="Disconnected" Foreground="{StaticResource MutedBrush}" Margin="0,6,0,14"/>
+            <WrapPanel Margin="0,0,0,14">
+              <Button Content="Create Controller" Click="Create_Click"/>
+              <Button Content="Remove Controller" Click="Remove_Click"/>
+              <Button Content="Reset" Click="Reset_Click"/>
+              <Button Content="Test A in 5s" Click="DelayedTest_Click"/>
+            </WrapPanel>
+            <TextBlock Text="BUTTONS · Click to toggle (click again to release)" FontSize="12" FontWeight="Bold"
+                       Foreground="{StaticResource MutedBrush}" Margin="0,0,0,10"/>
+            <WrapPanel Margin="0,0,0,16">
+              <ToggleButton x:Name="ButtonA" Content="A" Tag="A" Checked="Input_Changed" Unchecked="Input_Changed"/>
+              <ToggleButton x:Name="ButtonB" Content="B" Tag="B" Checked="Input_Changed" Unchecked="Input_Changed"/>
+              <ToggleButton x:Name="ButtonX" Content="X" Tag="X" Checked="Input_Changed" Unchecked="Input_Changed"/>
+              <ToggleButton x:Name="ButtonY" Content="Y" Tag="Y" Checked="Input_Changed" Unchecked="Input_Changed"/>
+              <ToggleButton x:Name="ButtonLB" Content="LB" Tag="LeftBumper" Checked="Input_Changed" Unchecked="Input_Changed"/>
+              <ToggleButton x:Name="ButtonRB" Content="RB" Tag="RightBumper" Checked="Input_Changed" Unchecked="Input_Changed"/>
+              <ToggleButton x:Name="ButtonStart" Content="Start" Tag="Start" Checked="Input_Changed" Unchecked="Input_Changed"/>
+              <ToggleButton x:Name="ButtonBack" Content="Back" Tag="Back" Checked="Input_Changed" Unchecked="Input_Changed"/>
+            </WrapPanel>
+
+            <TextBlock Text="D-PAD" FontSize="12" FontWeight="Bold"
+                       Foreground="{StaticResource MutedBrush}" Margin="0,0,0,7"/>
+            <WrapPanel Margin="0,0,0,14">
+              <ComboBox x:Name="DPadPicker" Width="190" SelectedIndex="0" SelectionChanged="Input_Changed">
+                <ComboBoxItem Content="Neutral" Tag="None"/>
+                <ComboBoxItem Content="Up" Tag="Up"/>
+                <ComboBoxItem Content="Up-right" Tag="UpRight"/>
+                <ComboBoxItem Content="Right" Tag="Right"/>
+                <ComboBoxItem Content="Down-right" Tag="DownRight"/>
+                <ComboBoxItem Content="Down" Tag="Down"/>
+                <ComboBoxItem Content="Down-left" Tag="DownLeft"/>
+                <ComboBoxItem Content="Left" Tag="Left"/>
+                <ComboBoxItem Content="Up-left" Tag="UpLeft"/>
+              </ComboBox>
+            </WrapPanel>
+
+            <TextBlock Text="ANALOG INPUTS" FontSize="12" FontWeight="Bold"
+                       Foreground="{StaticResource MutedBrush}" Margin="0,0,0,8"/>
+            <UniformGrid Columns="2">
+              <StackPanel Margin="0,0,12,0">
+                <TextBlock Text="Left stick X"/>
+                <Slider x:Name="LeftX" Minimum="-1" Maximum="1" Value="0" SmallChange="0.1" ValueChanged="Input_Changed"/>
+                <TextBlock Text="Left stick Y"/>
+                <Slider x:Name="LeftY" Minimum="-1" Maximum="1" Value="0" SmallChange="0.1" ValueChanged="Input_Changed"/>
+                <TextBlock Text="Left trigger"/>
+                <Slider x:Name="LeftTrigger" Minimum="0" Maximum="1" Value="0" SmallChange="0.1" ValueChanged="Input_Changed"/>
+              </StackPanel>
+              <StackPanel Margin="12,0,0,0">
+                <TextBlock Text="Right stick X"/>
+                <Slider x:Name="RightX" Minimum="-1" Maximum="1" Value="0" SmallChange="0.1" ValueChanged="Input_Changed"/>
+                <TextBlock Text="Right stick Y"/>
+                <Slider x:Name="RightY" Minimum="-1" Maximum="1" Value="0" SmallChange="0.1" ValueChanged="Input_Changed"/>
+                <TextBlock Text="Right trigger"/>
+                <Slider x:Name="RightTrigger" Minimum="0" Maximum="1" Value="0" SmallChange="0.1" ValueChanged="Input_Changed"/>
+              </StackPanel>
+            </UniformGrid>
+            <TextBlock Text="Y axis: +1 is up. Controllers return to neutral on reset."
+                       Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,10,0,0"/>
+          </StackPanel>
+        </Border>
+      </ScrollViewer>
+    </Grid>
+
+    <Grid Grid.Row="3" Margin="0,17,0,0">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <TextBlock x:Name="StatusText" VerticalAlignment="Center"
+                 Foreground="{StaticResource MutedBrush}" Text="Ready. Initialize the driver to begin."
+                 TextWrapping="Wrap"/>
+      <Button Grid.Column="1" Content="Reset inputs" Click="Reset_Click" Margin="14,0,0,0"/>
+    </Grid>
+  </Grid>
+</Window>

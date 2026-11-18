@@ -1,0 +1,66 @@
+name: Windows Build
+
+on:
+  push:
+    branches: [main, "feat/**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Download and verify pinned HIDMaestro SDK
+        shell: pwsh
+        run: ./scripts/prepare-hidmaestro.ps1
+
+      - name: Restore
+        run: dotnet restore YukMain.Host.slnx -p:EnableWindowsTargeting=true
+
+      - name: Build (warnings are errors)
+        run: dotnet build YukMain.Host.slnx -c Release --no-restore -p:EnableWindowsTargeting=true
+
+      - name: Run hardware-free controller tests
+        run: dotnet run --project tests/YukMain.Host.Tests/YukMain.Host.Tests.csproj -c Release --no-build
+
+      - name: Publish self-contained Windows agent
+        run: dotnet publish src/YukMain.Host.Desktop/YukMain.Host.Desktop.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableWindowsTargeting=true -o artifacts/win-x64
+
+      - name: Include HIDMaestro license and third-party notices
+        shell: pwsh
+        run: |
+          Copy-Item docs/HIDMaestro-LICENSE.txt artifacts/win-x64/HIDMaestro-LICENSE.txt
+          if (Test-Path vendor/HIDMaestro/THIRD-PARTY-NOTICES.txt) {
+            Copy-Item vendor/HIDMaestro/THIRD-PARTY-NOTICES.txt artifacts/win-x64/THIRD-PARTY-NOTICES.txt
+          }
+
+      - name: Create distribution ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive -Path artifacts/win-x64/* -DestinationPath artifacts/YukMain-Host-Agent-win-x64.zip -Force
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: YukMain-Host-Agent-win-x64
+          path: artifacts/YukMain-Host-Agent-win-x64.zip
+          if-no-files-found: error
+
+      - name: GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          gh release create ${{ github.ref_name }} artifacts/YukMain-Host-Agent-win-x64.zip --generate-notes --verify-tag

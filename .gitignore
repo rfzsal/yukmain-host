@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+*.sln.docstates
+TestResults/
+artifacts/
+dist/
+*.log
+vendor/HIDMaestro/*.dll
+vendor/HIDMaestro/*.zip
+vendor/HIDMaestro/THIRD-PARTY-NOTICES.txt
