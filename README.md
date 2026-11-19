@@ -1,3 +1,24 @@
+# Single-executable YukMain CLI host (new)
+
+**Recommended host launcher:** `YukMain.Host.exe` (Windows 10/11 x64).
+The executable combines the existing HTTPS/WSS Bridge and HIDMaestro controller engine without combining their privileges. No WPF GUI is started. The two processes are instances of the **same executable**, not two downloadable executables.
+
+1. Open a normal terminal and run `YukMain.Host.exe` (do NOT right-click "Run as administrator").
+2. Approve the Windows UAC prompt for the **separate** controller engine.
+3. After the driver initializes, enter the YukMain HTTPS URL, room code and temporary pairing code from Host Studio.
+4. Remote browser players automatically drive P2/P3/P4 through the normal-user WebSocket Bridge and the existing same-user, medium-integrity named pipe.
+5. Stop the CLI to release controller inputs; its elevated helper also watches the parent process, including after unexpected exit.
+
+**Distribution:** CI publishes one self-contained single-file EXE and GitHub Releases attach that EXE directly. Embedded HIDMaestro license notices can be read with `YukMain.Host.exe --licenses`. Native bundled resources may extract to a .NET runtime temporary directory; the HIDMaestro driver still installs to Windows with administrator consent.
+
+**Constraints:** The elevated engine and CLI must belong to the same Windows account (UAC "consent" for an administrator account). A standard user entering *another* administrator account's credentials may fail the existing named-pipe ownership check. Stop the old GUI Agent before starting the CLI; both use the same pipe name. Only the elevated engine initializes virtual controllers; the network Bridge never runs as administrator. There is no automatic server-pairing UI yet: the room and one-time code still come from Host Studio.
+
+## Existing local test GUI
+
+The old WPF GUI and stand-alone Bridge remain in source for debugging and regression builds, but are no longer the recommended packaged host entry point. The remaining documentation below describes the old workflow.
+
+---
+
 # YukMain Host Agent
 
 A standalone Windows host application for virtual Xbox 360 controllers, built for YukMain. **This branch is a local-test MVP; it does not connect to WebSocket yet.**
