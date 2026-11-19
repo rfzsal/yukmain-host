@@ -1,0 +1,60 @@
+name: Windows Build
+
+on:
+  push:
+    branches: [main, "feat/**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Download and verify pinned HIDMaestro SDK
+        shell: pwsh
+        run: ./scripts/prepare-hidmaestro.ps1
+
+      - name: Restore
+        run: dotnet restore YukMain.Host.slnx -p:EnableWindowsTargeting=true
+
+      - name: Build (warnings are errors)
+        run: dotnet build YukMain.Host.slnx -c Release --no-restore -p:EnableWindowsTargeting=true
+
+      - name: Run hardware-free controller tests
+        run: dotnet run --project tests/YukMain.Host.Tests/YukMain.Host.Tests.csproj -c Release --no-build
+
+      - name: Publish single-file CLI host
+        run: dotnet publish src/YukMain.Host.Cli/YukMain.Host.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o artifacts/cli-win-x64
+
+      - name: Stage one downloadable executable
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force artifacts/distribution | Out-Null
+          Copy-Item artifacts/cli-win-x64/YukMain.Host.exe artifacts/distribution/YukMain.Host.exe -Force
+          if (!(Test-Path artifacts/distribution/YukMain.Host.exe)) { throw 'Single-file host missing' }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: YukMain-Host-CLI-win-x64
+          path: artifacts/distribution/YukMain.Host.exe
+          if-no-files-found: error
+
+      - name: GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          gh release create ${{ github.ref_name }} artifacts/distribution/YukMain.Host.exe --generate-notes --verify-tag
