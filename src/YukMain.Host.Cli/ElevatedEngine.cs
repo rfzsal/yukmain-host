@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IO.Pipes;
 using System.Security.Principal;
 using System.Text;
+using System.Windows;
 using System.Windows.Threading;
 using YukMain.Host.Core.Controllers;
 using YukMain.Host.HidMaestro;
@@ -40,7 +41,8 @@ internal static class ElevatedEngine
                 catch (IOException) { /* Parent launcher disconnected. */ }
             }
 
-            var dispatcher = Dispatcher.CurrentDispatcher;
+            var application = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+            var dispatcher = application.Dispatcher;
             // The original WPF Agent performs both initialization and Submit on
             // one STA dispatcher. Preserve that ownership for the CLI helper.
             using var manager = new ControllerManager(new HidMaestroBackend());
@@ -59,7 +61,7 @@ internal static class ElevatedEngine
             shutdown.Tick += (_, _) =>
             {
                 if (stop.WaitOne(0) || parent.HasExited)
-                    dispatcher.BeginInvokeShutdown(DispatcherPriority.Normal);
+                    application.Shutdown();
             };
             shutdown.Start();
 
@@ -91,14 +93,14 @@ internal static class ElevatedEngine
                             manager.Reset(2);
                             Report("P2 self-test: Xbox A RELEASED. Test complete.");
                             testTimer.Stop();
-                            dispatcher.BeginInvokeShutdown(DispatcherPriority.Normal);
+                            application.Shutdown();
                         }
                     }
                     catch (Exception ex)
                     {
                         Report("ERROR P2 self-test: " + ex.Message);
                         testTimer.Stop();
-                        dispatcher.BeginInvokeShutdown(DispatcherPriority.Normal);
+                        application.Shutdown();
                     }
                 };
                 testTimer.Start();
@@ -107,7 +109,7 @@ internal static class ElevatedEngine
                 Report("Remote input pipe listening; waiting for P2/P3/P4 controller states.");
 
             ready.Set();
-            Dispatcher.Run();
+            application.Run();
             shutdown.Stop();
             receiver.ResetAll();
             Report("Controller engine stopped; inputs neutralized.");
