@@ -38,7 +38,8 @@ public partial class MainWindow : Window
             if (_player == slot) LoadInputs(state);
             RefreshSlot();
         }, status => StatusText.Text = status);
-        _inputPipe = new RemoteInputPipeServer(Dispatcher, ReceiveRemoteFrame, () => _remote.ResetAll());
+        _inputPipe = new RemoteInputPipeServer(Dispatcher, ReceiveRemoteFrame, () => _remote.ResetAll(),
+            error => Dispatcher.BeginInvoke(() => StatusText.Text = error));
         RefreshSlot();
     }
 

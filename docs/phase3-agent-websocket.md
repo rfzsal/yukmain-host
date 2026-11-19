@@ -5,7 +5,7 @@ This project now contains **two executables**:
 - `YukMain.Host.Agent.exe`: elevated WPF controller engine/HIDMaestro GUI. It has **no HTTP or WebSocket client**.
 - `YukMain.Host.Bridge.exe`: ordinary-user console process that pairs with the Go room API, receives controller snapshots over WSS, and forwards them over a current-user-only Windows named pipe.
 
-The pipe `yukmain-controller-input-v1` carries controller snapshots, and the elevated UI rejects other message types and slots. The elevated process retains HIDMaestro and the locally installed driver. The unprivileged Bridge never installs drivers or handles elevated device APIs.
+The pipe `yukmain-controller-input-v1` carries controller snapshots, and the elevated UI rejects other message types and slots. An explicit Windows ACL grants access only to the engine's Windows account; a medium-integrity label permits that account's non-elevated Bridge to write. The Bridge also verifies the pipe owner's account. The elevated process retains HIDMaestro and the locally installed driver. The unprivileged Bridge never installs drivers or handles elevated device APIs.
 
 ## Build
 
@@ -38,4 +38,4 @@ The Bridge holds the agent token in memory only and never logs it. The one-time 
 
 ## Safety notes
 
-This is a developer MVP, **not a hardened installer**. `PipeOptions.CurrentUserOnly` restricts pipe access to processes belonging to the same Windows account, rather than all local users. It does not distinguish trusted programs running as that user; future production work should add explicit broker authentication, consider interactive UI consent, and sign the distribution. Do not run the Bridge elevated. The elevated WPF controller component does not parse network packets directly.
+This is a developer MVP, **not a hardened installer**. The pipe ACL restricts access to processes belonging to the same Windows account, rather than all local users. `PipeOptions.CurrentUserOnly` is intentionally not used because it also requires matching elevation levels on Windows. Account checks do not distinguish trusted programs running as that user; future production work should add explicit broker authentication, consider interactive UI consent, and sign the distribution. Do not run the Bridge elevated. The elevated WPF controller component does not parse network packets directly.

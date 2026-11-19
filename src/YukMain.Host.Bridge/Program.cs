@@ -1,6 +1,8 @@
 using System.IO.Pipes;
 using System.Net.Http.Json;
 using System.Net.WebSockets;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
 
@@ -35,10 +37,13 @@ internal static class Program
         try
         {
             using var pipe = new NamedPipeClientStream(".", PipeName, PipeDirection.Out,
-                PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+                PipeOptions.Asynchronous, TokenImpersonationLevel.Identification);
             Console.WriteLine("Connecting to the elevated local controller engine...");
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await pipe.ConnectAsync(timeout.Token);
+            var owner = pipe.GetAccessControl().GetOwner(typeof(SecurityIdentifier));
+            if (!Equals(owner, WindowsIdentity.GetCurrent().User))
+                throw new UnauthorizedAccessException("Controller pipe belongs to another Windows account.");
             using var writer = new StreamWriter(pipe, new UTF8Encoding(false), bufferSize: 1024, leaveOpen: true)
             {
                 AutoFlush = true
