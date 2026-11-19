@@ -78,6 +78,7 @@ internal static class Program
             await socket.ConnectAsync(socketUrl, CancellationToken.None);
             Console.WriteLine("WSS connected. Awaiting player input (Ctrl+C to stop).");
             var buffer = new byte[4096];
+            var lastControllerLog = DateTime.MinValue;
 
             try
             {
@@ -105,7 +106,14 @@ internal static class Program
                     if (!root.TryGetProperty("slot", out var value) ||
                         !value.TryGetInt32(out var slot) || slot is < 2 or > 4) continue;
                     await writer.WriteLineAsync(data);
-                    Console.WriteLine($"P{slot}: {type}");
+                    // Gamepad snapshots may arrive 60 times/sec per player.
+                    // Forward every frame, but avoid flooding stdout and slowing the bridge.
+                    if (type != "controller.state" ||
+                        DateTime.UtcNow - lastControllerLog >= TimeSpan.FromSeconds(2))
+                    {
+                        Console.WriteLine($"P{slot}: {type}");
+                        lastControllerLog = DateTime.UtcNow;
+                    }
                 }
             }
             finally
